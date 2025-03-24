@@ -1,0 +1,84 @@
+.386
+EXTRN NUMBER : WORD
+
+PUBLIC UHEX
+PUBLIC SBIN
+PUBLIC SIGN
+
+PUBLIC TOUHEX
+
+DATASEG SEGMENT USE16 PARA PUBLIC 'DATA'
+    MASK16 DW 15
+    MASK2 DW 1
+    UHEX DB 4 DUP('0'), '$'
+    SBIN DB 7 DUP('0'), '$'
+    SIGN DB ' '
+DATASEG ENDS
+
+CODESEG SEGMENT USE16 PARA PUBLIC 'CODE'
+    ASSUME CS:CODESEG, DS:DATASEG
+
+TOUHEX PROC NEAR
+    MOV AX, NUMBER
+    MOV BX, 3
+
+    GETHEX:
+        MOV DX, AX
+        AND DX, MASK16
+        CMP DL, 10
+        JB ISDIGIT
+        ADD DL, 7
+
+        ISDIGIT:
+        ADD DL, '0'
+        MOV UHEX[BX], DL
+        MOV CL, 4
+        SAR AX, CL
+        DEC BX
+        CMP BX, -1
+        JNE GETHEX
+    RET
+TOUHEX ENDP
+
+TOSBIN PROC NEAR
+    MOV CL, ' '
+    MOV SIGN, CL
+    MOV AX, NUMBER
+    CMP NUMBER, 0
+    JGE POSITIVE_1
+
+    MOV CL, '-'
+    MOV SIGN, CL
+
+    POSITIVE_1:
+    CMP AL, 127
+    JBE NOTOVERFLOW
+    NOT AL
+    ADD AL, 1
+
+    CMP NUMBER, 0
+    JGE POSITIVE_2
+    MOV CL, ' '
+    MOV SIGN, CL
+    POSITIVE_2:
+    MOV CL, '-'
+    MOV SIGN, CL
+
+    NOTOVERFLOW:
+    ;XOR AH, AH
+    MOV BX, 6
+    GETBIN:
+        MOV DL, AL
+        AND DX, MASK2
+        ADD DL, '0'
+        MOV SBIN[BX], DL
+        MOV CL, 1
+        SAR AX, CL
+        DEC BX
+        CMP BX, -1
+        JNE GETBIN
+    RET
+TOSBIN ENDP
+
+CODESEG ENDS
+END

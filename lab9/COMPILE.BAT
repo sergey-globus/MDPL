@@ -1,0 +1,1 @@
+g++ -std=c++17 -O0 -g -Wall -Wextra -Werror -masm=intel -m64 -fPIE -fno-inline *.cpp -o app.exe

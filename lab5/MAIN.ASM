@@ -1,0 +1,55 @@
+.386
+EXTRN INCOMMAND: NEAR
+EXTRN INDECSGN: NEAR
+EXTRN OUTUHEX: NEAR
+EXTRN OUTSBIN: NEAR
+
+EXTRN NEWLINE: NEAR
+EXTRN COUNT_POW: NEAR
+STACKSEG SEGMENT PARA STACK 'STACK'
+    DB 200H DUP(0)
+STACKSEG ENDS
+
+DATASEG SEGMENT use16 PARA PUBLIC 'DATA'
+    MENU DB '       Actions:', 13, 10
+        DB '1. Input signed decimal number;', 13, 10
+        DB '2. Convert to unsigned hexadecimal;', 13, 10
+        DB '3. Convert to signed binary;', 13, 10
+	    DB '4. Find max crat pow;', 13, 10
+        DB '0. Exit program.', 13, 10, 10
+        DB 'Choose action: $'
+    ACTIONS DD EXIT, INDECSGN, OUTUHEX, OUTSBIN, COUNT_POW
+DATASEG ENDS
+
+CODESEG SEGMENT use16 PARA PUBLIC 'CODE'
+    ASSUME CS:CODESEG, DS:DATASEG, SS:STACKSEG
+
+OUTMENU PROC NEAR
+    MOV AH, 9
+    MOV DX, OFFSET MENU
+    INT 21H
+    RET
+OUTMENU ENDP
+
+EXIT PROC NEAR
+    MOV AX, 4C00H
+    INT 21H
+EXIT ENDP
+
+MAIN:
+    MOV AX, DATASEG
+    MOV DS, AX
+
+    MAINLOOP:
+        CALL NEWLINE
+        CALL OUTMENU
+        CALL INCOMMAND
+        CALL NEWLINE
+	mov ax, si
+	imul ax, 2
+	mov si, ax
+        CALL ACTIONS[SI]
+        JMP MAINLOOP
+
+CODESEG ENDS
+END MAIN

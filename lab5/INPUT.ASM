@@ -1,0 +1,69 @@
+.386
+PUBLIC NUMBER
+
+PUBLIC INCOMMAND
+PUBLIC INDECSGN
+
+DATASEG SEGMENT USE16 PARA PUBLIC 'DATA'
+    NUMBER DW 0
+    INMSG DB 'Enter signed decimal number (from -32768 to 32767): $'
+    FLAGNEG DB 0
+DATASEG ENDS
+
+CODESEG SEGMENT use16 PARA PUBLIC 'CODE'
+    ASSUME CS:CODESEG, DS:DATASEG
+
+INCOMMAND PROC NEAR
+    MOV AH, 1
+    INT 21H
+    SUB AL, '0'
+    MOV CL, 2
+    MUL CL
+    MOV SI, AX
+    RET
+INCOMMAND ENDP
+
+INDECSGN PROC NEAR
+    MOV AH, 9
+    MOV DX, OFFSET INMSG
+    INT 21H
+
+    MOV BX, 0
+
+    INSYMB:
+        MOV AH, 1
+        INT 21H
+
+        CMP AL, 13
+        JE ENDINP
+
+        CMP AL, 45
+        JNE NOTMINUS
+        MOV FLAGNEG, 1
+        JMP INSYMB
+
+        NOTMINUS:
+            MOV CL, AL
+            MOV CH, 0
+            SUB CL, '0'
+
+            MOV AX, 10
+            MUL BX
+            MOV BX, AX
+
+            ADD BX, CX
+            JMP INSYMB
+
+    ENDINP:
+    CMP FLAGNEG, 1
+    JNE SIGNPOS
+    NEG BX
+    MOV FLAGNEG, 0
+
+    SIGNPOS:
+    MOV NUMBER, BX
+    RET
+INDECSGN ENDP
+
+CODESEG ENDS
+END
